@@ -1,30 +1,27 @@
 const express = require('express');
 const app = express();
 const bodyParser = require("body-parser");
+const sql = require("mssql");
 
-receipt_list = [
-   {
-       id: '0001',
-       customer_id: '0001',
-       date: '06/12/2020',
-       total: 2492000
-   },
-   {
-       id: '0002',
-       customer_id: '0001',
-       date: '15/4/2021',
-       total: 540000
-   }
-];
+const config = {
+   user: 'sa',
+   password: 'svcntt',
+   server: 'localhost', 
+   database: 'DB_QLHD',
+   trustServerCertificate: true,
+};
+
 
 app.use(express.static('public'));
 //Here we are configuring express to use body-parser as middle-ware.
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+
 app.get('/', function (req, res) {
    res.sendFile("index.html");
 })
+
 
 app.post('/insert-receipt-post', function (req, res) {
    // Prepare output in JSON format
@@ -43,21 +40,38 @@ app.post('/insert-receipt-post', function (req, res) {
    res.send("Sent successfully! New row has been inserted!");
 })
 
+
 app.get('/api/receipt-list', function (req, res) {
+   // If there is no parameters then get all HoaDon
+   var sqlQuery = 'SELECT * FROM HoaDon'
    // TODO: handle resquest with parameter
+   if (Object.keys(req.query).length !== 0) {
+      var sqlQuery = `SELECT * FROM HoaDon
+      WHERE YEAR(NgayLap) = ${req.query.year} AND MONTH(NgayLap) = ${req.query.month}`
+   }
 
    // TODO: get receipt_list in DB
-
-
-   // Send to res
-   res.json({receipt_list: receipt_list});
+   const request = new sql.Request();
+   request.query(sqlQuery, (err, result) => {
+      if (err) res.status(500).send(err);
+      //console.log(result.recordset);
+      const receipt_list = result.recordset.map(elm => ({ id: elm.MaHD, customer_id: elm.MaKH, date: elm.NgayLap.toLocaleDateString(), total: elm.TongTien}));
+      // Send to res
+      res.json({receipt_list: receipt_list});
+   });
 })
 
 
+sql.connect(config, err => {
+   if (err) {
+      console.log('Failed to open a SQL Database connection.', err.stack);
+      process.exit(1);
+   }
+   var server = app.listen(8080, function () {
+      var host = server.address().address;
+      var port = server.address().port;
+      
+      console.log("Example app listening at http://%s:%s", host, port);
+   });
+});
 
-var server = app.listen(8080, function () {
-   var host = server.address().address;
-   var port = server.address().port;
-   
-   console.log("Example app listening at http://%s:%s", host, port);
-})
