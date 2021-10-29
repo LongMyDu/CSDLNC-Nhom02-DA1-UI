@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/8857bfb7d3.js" crossorigin="anonymous"></script>
     <title>Cart</title>
 </head>
 <body>
@@ -28,20 +29,46 @@
     </header>
     <section class="lr-center grid tb-margin-medium">
         <div class="width-12col grid flex f-row justify-right">
-            <!-- <span><img src="../img/arrow-icon.png"></span> -->
-            <h2>Thêm hóa đơn</h2>   
+            <img src="img/arrow-icon.png" class="tb-center">
+            <h3>Thêm hóa đơn</h2>   
         </div>
-        <form action = "/insert-receipt-post" method = "POST" id="insert-form" class="width-12col grid form tb-margin-smaller">
-            <div class="width-5col">
-                <label>Mã khách hàng</label>
-                <input id="customer-id-input" type="text" name = "customer_id" class="width-100">
+        <form action = "/insert-receipt-post" method = "POST" id="insert-form" class="grid width-12col form tb-margin-smaller">
+            <div class="tb-margin-smaller grid width-12col">
+                <div class="width-3col">
+                    <label>Mã khách hàng</label>
+                    <input id="customer-id-input" type="text" name = "customer_id" class="width-100">
+                </div>
+                <div class="width-4col ">
+                    <label>Ngày lập</label>
+                    <input id="date-input" type="date" name = "date" class="width-100">
+                </div>
             </div>
-            <div class="width-5col">
-                <label>Ngày lập</label>
-                <input id="date-input" type="date" name = "date" class="width-100">
+            <ul id="detail-list" class="grid width-12col tb-margin-smaller">
+                <li id="detail1" class="grid width-12col tb-margin-smaller">
+                    <div class="width-3col">
+                        <label>Mã sản phẩm 1</label>
+                        <input id="product1-id-input" type="text" name= "product_id">
+                    </div>
+                    <div class="width-4col">
+                        <label>Số lượng</label>
+                        <input id="product1-number-input" type="number" min=1 name="product_number">
+                    </div>
+                    <div class="width-4col">
+                        <label>Giá</label>
+                        <input id="product1-price-input" type="number" min=0 name="product_price">
+                    </div>
+                    <div class="width-1col tb-center">
+                        <!-- <button detail-id = 1 class="delete-button far fa-trash-alt" type="button"></button> -->
+                    </div>
+                </li>
+               
+            </ul>
+            <div class = "width-12col">
+                <button id="insert-row-button" class="insert-button" type="button"><i class="fas fa-plus-circle"></i></button>
             </div>
-            <div class = "width-2col bottom">
-                <button class="width-100 button yellow-button small-button" type="submit">Insert</button>
+            <div class="width-12col grid">
+                <div class="width-7col"></div>
+                <button class="button green-button small-button width-5col justify-right" type="submit">Hoàn tất</button>
             </div>
         </form>
     </section>
