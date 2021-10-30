@@ -27,12 +27,48 @@ Array.prototype.pushValues = function(arr) {
 };
 
 function NoneEmpty(arr) {
-   for(var i = 0; i < arr.length; i++)
-     if(arr[i] === '') return false;
+   for(var i = 0; i < arr.length; i++) {
+     if(arr[i].product_id === '' || arr[i].product_price === '' || arr[i].product_number === '') return false;
+   }
    return true;
+}
+ 
+ function checkCustomerID(customer_id) {
+   return new Promise((resolve, reject) => {
+      var sqlQuery = `SELECT * FROM KhachHang KH WHERE KH.MaKH = '${customer_id}'`;
+      const connection = new sql.Request();
+      connection.query(sqlQuery, (err, result) => {
+         if (err) return reject(err);
+         if (result.recordset.length === 0) {
+            return reject("Cannot insert! Wrong customer's ID!");
+         }
+         return resolve(true);
+      }
+     );
+   }).catch(err => {
+      console.log("Error from check customer id: ", customer_id);
+   });
  }
 
-app.post('/insert-receipt-post', function (req, res) {
+ 
+ function checkProductID(product) {
+   return new Promise((resolve, reject) => {
+      var sqlQuery = `SELECT * FROM SanPham SP WHERE SP.MaSP = '${product.product_id}'`
+      const request = new sql.Request();
+      request.query(sqlQuery, (err, result) => {
+         if (err) return reject(err);
+         if (result.recordset.length === 0) {
+            return reject("Cannot insert! Wrong product's ID!");
+         }
+         return resolve(true);
+         }
+      );
+   }).catch(err => {
+      console.log("Error from check product id: ", product.product_id);
+   });
+ }
+
+app.post('/insert-receipt-post', async function (req, res) {
    // Prepare output in JSON format
    let response = {
       customer_id:req.body.customer_id,
@@ -41,22 +77,17 @@ app.post('/insert-receipt-post', function (req, res) {
    };
    
    //TODO: validate response
-   let isValid = true;
+   //let isValid = true;
 
    // Get customer ID and date
-   var values = Object.values(response);
-   var customer_id = values[0];
-   var date = values[1]
+   var customer_id = response.customer_id;
+   var date = response.date;
 
    // Get all products
    // product_detail_list[i] % 3 === 0: MaSP
    // product_detail_list[i] % 3 === 1: SoLuong
    // product_detail_list[i] % 3 === 2: Gia
-   var all_prod = Object.values(values[2])
-   const product_detail_list = [];
-   for (const prod of all_prod) {
-      product_detail_list.pushValues(Object.values(prod))
-   }
+   var product_detail_list = response.product_detail_list;
 
    // Case 1: Insufficient information
    if (customer_id === '' || date === '' || !NoneEmpty(product_detail_list)) {
@@ -74,34 +105,26 @@ app.post('/insert-receipt-post', function (req, res) {
    }
 
    // Case 3: Wrong customer_id
-   var sqlQuery = `SELECT * FROM KhachHang KH
-                  WHERE KH.MaKH = ${customer_id}`
-   const request = new sql.Request();
-   request.query(sqlQuery, (err, result) => {
-      if (err) res.status(500).send(err);
-      if (result.recordset.length === 0) {
-         res.send("Cannot insert! Wrong customer's ID!");
-         isValid = false;
-      }
-   });
-
-   if (isValid === false) return;
+   // var sqlQuery = `SELECT * FROM KhachHang KH
+   //                WHERE KH.MaKH = ${customer_id}`
+   // const request = new sql.Request();
+   // request.query(sqlQuery, (err, result) => {
+   //    if (err) res.status(500).send(err);
+   //    if (result.recordset.length === 0) {
+   //       res.send("Cannot insert! Wrong customer's ID!");
+   //       isValid = false;
+   //    }
+   // });
+   let isValid = await checkCustomerID(customer_id);
+   if (isValid !== true) return;
 
    // Case 4: Wrong product_id
-   for (let i = 0; i < product_detail_list.length / 3; i++) {
-      var sqlQuery = `SELECT * FROM SanPham SP
-      WHERE SP.MaSP = ${product_detail_list[i*3]}`
-      //const request = new sql.Request();
-      request.query(sqlQuery, (err, result) => {
-         if (err) res.status(500).send(err);
-         if (result.recordset.length === 0) {
-            res.send("Cannot insert! Wrong product's ID!");
-            isValid = false;
-         }
-      });
-      if (isValid === false) return;
+   for (let i = 0; i < product_detail_list.length; i++) {
+      isValid = await checkProductID(product_detail_list[i]);
+      if (isValid !== true) return;
    }
 
+   /*
    //TODO: link to DB and insert new row into table HoaDon and CT_HoaDon
    // Select the last row in table HoaDon
    var sqlQuery_select = `SELECT TOP 1 MaHD FROM HoaDon ORDER BY MaHD DESC`
@@ -139,7 +162,7 @@ app.post('/insert-receipt-post', function (req, res) {
          // Send to client successfull message
          res.send("Insert sucessfully!")
       }
-   });
+   });*/
 })
 
 
