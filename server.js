@@ -199,8 +199,8 @@ app.post('/insert-receipt-post', async function (req, res) {
 app.get('/api/receipt-list', function (req, res) {
    // If there is no parameters then get all HoaDon
    var sqlQuery = 'SELECT * FROM HoaDon'
-   // TODO: handle resquest with parameter
-   if (Object.keys(req.query).length !== 0) {
+   // TODO: handle resquest with parameters
+   if (Object.keys(req.query).length > 1) {
       var sqlQuery = `SELECT * FROM HoaDon
       WHERE YEAR(NgayLap) = ${req.query.year} AND MONTH(NgayLap) = ${req.query.month}`
    }
@@ -209,10 +209,13 @@ app.get('/api/receipt-list', function (req, res) {
    const request = new sql.Request();
    request.query(sqlQuery, (err, result) => {
       if (err) res.status(500).send(err);
-      //console.log(result.recordset);
-      const receipt_list = result.recordset.map(elm => ({ id: elm.MaHD, customer_id: elm.MaKH, date: elm.NgayLap.toLocaleDateString(), total: elm.TongTien}));
+      var totalItems = result.recordset.length;
+      var page = req.query.page;
+      
+      const total_receipt_list = result.recordset.map(elm => ({ id: elm.MaHD, customer_id: elm.MaKH, date: elm.NgayLap.toLocaleDateString(), total: elm.TongTien}));
+      const receipt_list = total_receipt_list.slice(10*(page-1), 10*page-1);
       // Send to res
-      res.json({receipt_list: receipt_list});
+      res.json({totalItems: totalItems,receipt_list: receipt_list});
    });
 })
 
