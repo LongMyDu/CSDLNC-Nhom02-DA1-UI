@@ -46,7 +46,6 @@ function NoneEmpty(arr) {
       }
      );
    }).catch(err => {
-      console.log("Error from check customer id: ", customer_id);
    });
  }
 
@@ -64,8 +63,56 @@ function NoneEmpty(arr) {
          }
       );
    }).catch(err => {
-      console.log("Error from check product id: ", product.product_id);
    });
+ }
+
+ function generateReceiptID(new_receipt_id) {
+    return new Promise((resolve, reject) => {
+      // Select the last row in table HoaDon
+      var sqlQuery = `SELECT TOP 1 MaHD FROM HoaDon ORDER BY MaHD DESC`
+      const request = new sql.Request();
+      request.query(sqlQuery, (err, result) => {
+         if (err) res.status(500).send(err);
+         // Create a new receipt ID
+         new_receipt_id.value = (parseInt(Object.values(result.recordset[0]), 10) + 1).toString();
+         // Check if the database is full
+         if (new_receipt_id.length > 6) {
+            return reject("Cannot insert! Database is full");
+         }
+         return resolve(true);
+      });
+    }).catch(err => {      
+    });
+ }
+
+ function insertIntoHoaDon(new_receipt_id, customer_id, date) {
+    return new Promise((resolve, reject) => {
+      var sqlQuery = `INSERT INTO HoaDon VALUES ('${new_receipt_id.value}','${customer_id}', '${date}', NULL)`
+      const request = new sql.Request();
+      request.query(sqlQuery, (err, result) => {
+         if (err) return reject("Connection failed!");
+         console.log(sqlQuery);
+      });
+      return resolve(true);
+    }).catch (err => {
+    });
+ }
+
+ function insertIntoCT_HoaDon(new_receipt_id, product_detail_list) {
+    return new Promise((resolve, reject) => {
+      var sqlQueries = ``;
+      for (let i = 0; i < product_detail_list.length; i++) {
+         sqlQueries += `INSERT INTO CT_HoaDon VALUES ('${new_receipt_id.value}', '${product_detail_list[i].product_id}', 
+                        ${product_detail_list[i].product_number}, ${product_detail_list[i].product_price}, 0, NULL);`
+      }
+      const request = new sql.Request();
+      request.query(sqlQueries, (err, result) => {
+         if (err) return reject("Connection failed!");
+         console.log(sqlQueries);
+      });
+      return resolve(true);
+    }).catch(err => {
+    });
  }
 
 app.post('/insert-receipt-post', async function (req, res) {
@@ -84,9 +131,6 @@ app.post('/insert-receipt-post', async function (req, res) {
    var date = response.date;
 
    // Get all products
-   // product_detail_list[i] % 3 === 0: MaSP
-   // product_detail_list[i] % 3 === 1: SoLuong
-   // product_detail_list[i] % 3 === 2: Gia
    var product_detail_list = response.product_detail_list;
 
    // Case 1: Insufficient information
@@ -105,64 +149,50 @@ app.post('/insert-receipt-post', async function (req, res) {
    }
 
    // Case 3: Wrong customer_id
-   // var sqlQuery = `SELECT * FROM KhachHang KH
-   //                WHERE KH.MaKH = ${customer_id}`
-   // const request = new sql.Request();
-   // request.query(sqlQuery, (err, result) => {
-   //    if (err) res.status(500).send(err);
-   //    if (result.recordset.length === 0) {
-   //       res.send("Cannot insert! Wrong customer's ID!");
-   //       isValid = false;
-   //    }
-   // });
    let isValid = await checkCustomerID(customer_id);
-   if (isValid !== true) return;
-
+   if (isValid !== true) {
+      res.send(`Error from checking customer id: ${customer_id}`);
+      return;
+   }
    // Case 4: Wrong product_id
    for (let i = 0; i < product_detail_list.length; i++) {
       isValid = await checkProductID(product_detail_list[i]);
-      if (isValid !== true) return;
+      if (isValid !== true) {
+         res.send(`Error from checking product id: ${product_detail_list[i].product_id}`);
+         return;
+      } 
    }
 
-   /*
-   //TODO: link to DB and insert new row into table HoaDon and CT_HoaDon
-   // Select the last row in table HoaDon
-   var sqlQuery_select = `SELECT TOP 1 MaHD FROM HoaDon ORDER BY MaHD DESC`
-   //const request = new sql.Request();
-   request.query(sqlQuery_select, (err, result) => {
-      if (err) res.status(500).send(err);
-      // Create a new receipt ID
-      var new_receipt_id = (parseInt(Object.values(result.recordset[0]), 10) + 1).toString();
-
-      // Check if the database is full
-      if (new_receipt_id.length > 6) {
-         res.send("Cannot insert! Database is full");
-         isValid = false;
-      }
-
-      // If all conditions are met, insert into HoaDon
-      if (isValid === true) {
-         new_receipt_id = ((6 - new_receipt_id.length) * '0') + new_receipt_id;
-         var sqlQuery_insert = `INSERT INTO HoaDon VALUES (${new_receipt_id},${customer_id}, ${date}, NULL)`
-         //const request = new sql.Request();
-         request.query(sqlQuery_insert, (err, result) => {
-            if (err) res.status(500).send(err);
-         });
-         // Insert into CT_HoaDon
-         for (let i = 0; i < product_detail_list.length; i=i+3) {
-            var sqlQuery_insert2 = `INSERT INTO CT_HoaDon VALUES (${new_receipt_id}, ${product_detail_list[i]}, ${product_detail_list[i+1]}, 
-                                                          ${product_detail_list[i+2]},0, NULL)`
-            //const request = new sql.Request();
-            request.query(sqlQuery_insert2, (err, result) => {
-               if (err) res.status(500).send(err);
-            });
+   // Case 5: Duplicate product_id
+   for (let i = 0; i < product_detail_list.length - 1; i++) {
+      for (let j = i+1; j < product_detail_list.length; j++) {
+         if (product_detail_list[i].product_id === product_detail_list[j].product_id) {
+            res.send(`Duplicate product id: ${product_detail_list[i].product_id}`);
+            return;
          }
-         console.log(response);
-         console.log(isValid);
-         // Send to client successfull message
-         res.send("Insert sucessfully!")
       }
-   });*/
+   }
+
+   //TODO: link to DB and insert new row into table HoaDon and CT_HoaDon
+   new_receipt_id = {}
+   isValid = await generateReceiptID(new_receipt_id);
+   if (isValid !== true) {
+      res.send("Database is full!");
+      return;
+   }
+
+   new_receipt_id.value = ('0'.repeat(6 - new_receipt_id.value.length)) + new_receipt_id.value;
+   isValid = await insertIntoHoaDon(new_receipt_id, customer_id, date);
+   if (isValid !== true) {
+      res.send("Connection failed when inserting your receipt!");
+      return;
+   }
+   isValid = await insertIntoCT_HoaDon(new_receipt_id, product_detail_list);
+   if (isValid !== true) {
+      res.send(`Connection failed when inserting into CT_HoaDon!`);
+      return;
+   }
+   res.send("Insert successfully!");
 })
 
 
