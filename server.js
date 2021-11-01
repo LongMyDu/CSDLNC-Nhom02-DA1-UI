@@ -5,21 +5,22 @@ const sql = require("mssql");
 
 const config = {
    user: 'sa',
-   password: 'svcntt',
+   password: 'lmd',
    server: 'localhost', 
+   port: 51713,
    database: 'DB_QLHD',
    trustServerCertificate: true,
 };
 
 
-app.use(express.static('public'));
+app.use(express.static('dist'));
 //Here we are configuring express to use body-parser as middle-ware.
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 
 app.get('/', function (req, res) {
-   res.sendFile("index.html");
+   res.sendFile(__dirname + "/index.html");
 })
 
 Array.prototype.pushValues = function(arr) {
