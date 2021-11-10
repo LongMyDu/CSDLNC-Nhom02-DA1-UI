@@ -26,12 +26,15 @@ const clearTotal = () => {
 const calculateTotal = (receipt_list) => {
     let total = 0;
     for (let receipt of receipt_list) {
-        total += receipt.total;
+        total += parseInt(receipt.total);
     }
+    console.log("Total: ", total);
     return total;
 }
 
 const showData = (totalItems, receipt_list) => {
+    console.log("aloalo");
+    console.log("Receipt list: ", receipt_list);
     // Clear UI
     clearReceiptList();
     clearTotal();

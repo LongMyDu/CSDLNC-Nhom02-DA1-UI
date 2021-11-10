@@ -34,7 +34,8 @@ export const sendGetReceiptListRequest = (month, year, page = 1, callback) => {
     request.open('GET', `/api/receipt-list?${params}`);
 
     request.onload = function() {
-        callback(JSON.parse(request.response).receipt_list);
+        let message_received = JSON.parse(request.response);
+        callback(message_received.totalItems, message_received.receipt_list);
     };
     request.send();
 }
