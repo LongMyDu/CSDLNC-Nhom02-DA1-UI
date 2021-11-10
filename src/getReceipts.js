@@ -35,6 +35,8 @@ export const sendGetReceiptListRequest = (month, year, page = 1, callback) => {
 
     request.onload = function() {
         let message_received = JSON.parse(request.response);
+        //console.log("Message received: ", message_received);
+        //console.log("Call back func: ", callback);
         callback(message_received.totalItems, message_received.receipt_list);
     };
     request.send();

@@ -33,8 +33,7 @@ const calculateTotal = (receipt_list) => {
 }
 
 const showData = (totalItems, receipt_list) => {
-    console.log("aloalo");
-    console.log("Receipt list: ", receipt_list);
+    
     // Clear UI
     clearReceiptList();
     clearTotal();
@@ -51,14 +50,13 @@ HtmlElements.statisticInfoForm.addEventListener("submit", (e) => {
     // Get month and year
     let month = HtmlElements.statisticMonthInput.value;
     let year = HtmlElements.statisticYearInput.value;
-    console.log(`Statistic view: month=${month}, year=${year}`)
+    //console.log(`Statistic view: month=${month}, year=${year}`)
     
-    sendGetReceiptListRequest(month, year, 1, initPage);
+    sendGetReceiptListRequest(month, year, 1, showData);
 })
 
-
-
 const initPage = (totalItems, receipt_list) => {
+    
     const pagination = new Pagination(HtmlElements.paginationContainer, { 
         totalItems: totalItems,
         itemsPerPage: 10,
@@ -69,5 +67,6 @@ const initPage = (totalItems, receipt_list) => {
         sendGetReceiptListRequest(null, null, eventData.page, showData);
     });
 }
+
 
 
