@@ -214,6 +214,7 @@ app.get('/api/receipt-list', function (req, res) {
       var page = req.query.page;
       
       const total_receipt_list = result.recordset.map(elm => ({ id: elm.MaHD, customer_id: elm.MaKH, date: elm.NgayLap.toLocaleDateString(), total: elm.TongTien}));
+      
       const receipt_list = total_receipt_list.slice(10*(page-1), 10*page-1);
       // Send to res
       res.json({totalItems: totalItems,receipt_list: receipt_list});

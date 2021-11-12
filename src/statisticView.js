@@ -43,16 +43,19 @@ const showData = (totalItems, receipt_list) => {
     showTotal(total);
 }
 
+let month;
+let year;
+
 HtmlElements.statisticInfoForm.addEventListener("submit", (e) => {
     // Prevent reload after submit form 
     e. preventDefault();
 
     // Get month and year
-    let month = HtmlElements.statisticMonthInput.value;
-    let year = HtmlElements.statisticYearInput.value;
+    month = HtmlElements.statisticMonthInput.value;
+    year = HtmlElements.statisticYearInput.value;
     //console.log(`Statistic view: month=${month}, year=${year}`)
     
-    sendGetReceiptListRequest(month, year, 1, showData);
+    sendGetReceiptListRequest(month, year, 1, initPage);
 })
 
 const initPage = (totalItems, receipt_list) => {
@@ -64,8 +67,9 @@ const initPage = (totalItems, receipt_list) => {
         centerAlign: true
     });
     pagination.on('beforeMove', (eventData) => {
-        sendGetReceiptListRequest(null, null, eventData.page, showData);
+        sendGetReceiptListRequest(month, year, eventData.page, showData);
     });
+    showData(totalItems, receipt_list);
 }
 
 
