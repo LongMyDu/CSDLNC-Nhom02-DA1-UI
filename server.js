@@ -5,9 +5,8 @@ const sql = require("mssql");
 
 const config = {
    user: 'sa',
-   password: 'lmd',
+   password: 'svcntt',
    server: 'localhost', 
-   port: 51713,
    database: 'DB_QLHD',
    trustServerCertificate: true,
 };
