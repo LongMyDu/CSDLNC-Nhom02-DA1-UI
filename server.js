@@ -92,7 +92,7 @@ function NoneEmpty(arr) {
       const request = new sql.Request();
       request.query(sqlQuery, (err, result) => {
          if (err) return reject("Connection failed!");
-         console.log(sqlQuery);
+         //console.log(sqlQuery);
       });
       return resolve(true);
     }).catch (err => {
@@ -109,7 +109,7 @@ function NoneEmpty(arr) {
       const request = new sql.Request();
       request.query(sqlQueries, (err, result) => {
          if (err) return reject("Connection failed!");
-         console.log(sqlQueries);
+         //console.log(sqlQueries);
       });
       return resolve(true);
     }).catch(err => {
